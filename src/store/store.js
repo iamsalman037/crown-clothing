@@ -1,24 +1,36 @@
-import {compose, createStore, applyMiddleware} from 'redux'
-import logger from "redux-logger"
-//import { loggerMiddleware } from './middleware/logger'
-import {rootReducer} from './root-reducer'
-import { persistStore, persistReducer } from 'redux-persist'
-import storage from 'redux-persist/lib/storage'
+import { compose, createStore, applyMiddleware } from 'redux';
+import { persistStore, persistReducer } from 'redux-persist';
+import storage from 'redux-persist/lib/storage';
+import logger from 'redux-logger';
+import thunk from 'redux-thunk';
 
-const middleWares = [process.env.NODE_ENV !== 'production' && logger].filter(Boolean)
+import { rootReducer } from './root-reducer';
 
-const composeEnhancer = (process.env.NODE_ENV !== 'production' && window && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__) || compose
+const middleWares = [
+  process.env.NODE_ENV === 'development' && logger,
+  thunk,
+].filter(Boolean);
 
-const composedEnhancers = composeEnhancer(applyMiddleware(...middleWares))
+const composeEnhancer =
+  (process.env.NODE_ENV !== 'production' &&
+    window &&
+    window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__) ||
+  compose;
 
 const persistConfig = {
-    key: 'root',
-    storage,
-    blacklist:['user']
-}
+  key: 'root',
+  storage,
+  blacklist: ['user'],
+};
 
-const persistedReducer = persistReducer(persistConfig, rootReducer)
+const persistedReducer = persistReducer(persistConfig, rootReducer);
 
-export const store = createStore(persistedReducer, undefined, composedEnhancers)
+const composedEnhancers = composeEnhancer(applyMiddleware(...middleWares));
 
-export const persistor = persistStore(store)
+export const store = createStore(
+  persistedReducer,
+  undefined,
+  composedEnhancers
+);
+
+export const persistor = persistStore(store);
